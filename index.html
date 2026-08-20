@@ -800,7 +800,7 @@ function loadPhase(i){
 
   const nextWork = findNextWork(i);
   document.getElementById('exerciseSub').textContent = isPrepare
-    ? 'Zet je telefoon neer, we beginnen zo'
+    ? 'Zet je apparaat neer, we beginnen zo'
     : (nextWork ? `volgende: ${nextWork.name}` : 'laatste oefening');
 
   document.getElementById('stage').classList.toggle('phase-rest', !isWork);
