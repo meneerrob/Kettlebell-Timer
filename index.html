@@ -736,8 +736,13 @@ document.getElementById('skipBtn').addEventListener('click', ()=> advance(true))
 
 function stage(){ return document.getElementById('stage'); }
 
+const PREPARE_TIME = 10; // seconden aftellen voordat de eerste oefening start
+
 function buildQueue(){
   const q = [];
+  if(state.selected.length){
+    q.push({type:'prepare', exId: state.selected[0], round:0});
+  }
   for(let r=0; r<state.rounds; r++){
     state.selected.forEach(exId=>{
       q.push({type:'work', exId, round:r});
@@ -785,20 +790,25 @@ function loadPhase(i){
   if(!item){ finishWorkout(); return; }
   const ex = EXERCISES.find(e=>e.id===item.exId);
   const isWork = item.type==='work';
-  state.phaseRemaining = isWork ? state.workTime : state.restTime;
+  const isPrepare = item.type==='prepare';
+  state.phaseRemaining = isWork ? state.workTime : (isPrepare ? PREPARE_TIME : state.restTime);
 
-  document.getElementById('phaseLabel').textContent = isWork ? 'Aan de slag' : 'Rust';
+  document.getElementById('phaseLabel').textContent = isWork ? 'Aan de slag' : (isPrepare ? 'Training start over' : 'Rust');
   document.getElementById('phaseLabel').className = 'phase-label' + (isWork?'':' rest');
-  document.getElementById('exerciseName').textContent = isWork ? ex.name : 'Rust';
+  document.getElementById('exerciseName').textContent = isWork ? ex.name : (isPrepare ? ex.name : 'Rust');
   document.getElementById('roundTag').textContent = `Ronde ${item.round+1} / ${state.rounds}`;
 
   const nextWork = findNextWork(i);
-  document.getElementById('exerciseSub').textContent = nextWork ? `volgende: ${nextWork.name}` : 'laatste oefening';
+  document.getElementById('exerciseSub').textContent = isPrepare
+    ? 'Zet je telefoon neer, we beginnen zo'
+    : (nextWork ? `volgende: ${nextWork.name}` : 'laatste oefening');
 
   document.getElementById('stage').classList.toggle('phase-rest', !isWork);
   showFigure(isWork ? item.exId : null);
   updateDots();
   updateTimerDisplay();
+
+  document.getElementById('skipBtn').textContent = isPrepare ? 'Start nu' : 'Volgende';
 }
 
 function findNextWork(i){
@@ -840,7 +850,9 @@ function runTick(){
     const delta = (now - state.lastTick)/1000;
     state.lastTick = now;
     state.phaseRemaining -= delta;
-    state.totalRemaining -= delta;
+    if(state.queue[state.idx] && state.queue[state.idx].type !== 'prepare'){
+      state.totalRemaining -= delta;
+    }
     if(state.phaseRemaining <= 0){
       advance(false);
     } else {
