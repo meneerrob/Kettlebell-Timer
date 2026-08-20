@@ -914,6 +914,13 @@ function runTick(){
 }
 
 function advance(manual){
+  const current = state.queue[state.idx];
+  if(manual && current && current.type !== 'prepare' && state.phaseRemaining > 0){
+    // Bij handmatig overslaan: trek de nog resterende tijd van deze fase af
+    // van de totale resterende tijd, zodat de teller synchroon blijft.
+    state.totalRemaining -= state.phaseRemaining;
+    if(state.totalRemaining < 0) state.totalRemaining = 0;
+  }
   state.idx++;
   if(state.idx >= state.queue.length){
     finishWorkout();
