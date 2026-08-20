@@ -284,7 +284,11 @@
   .start-btn:not(:disabled):active{transform:scale(0.98);}
 
   /* ---------- Timer screen ---------- */
-  #screen-timer{justify-content:flex-start;padding-top:20px;}
+  #screen-timer{
+    justify-content:flex-start;
+    padding-top:calc(20px + env(safe-area-inset-top));
+    padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  }
   .timer-top{
     width:100%;max-width:440px;
     display:flex;justify-content:space-between;align-items:center;
