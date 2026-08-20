@@ -753,6 +753,7 @@ function startWorkout(){
   loadPhase(0);
   showScreen('timer');
   runTick();
+  requestWakeLock();
 }
 
 function buildDots(){
@@ -861,6 +862,7 @@ function togglePause(){
 
 function stopTimer(){
   clearInterval(state.timerId);
+  releaseWakeLock();
 }
 
 function finishWorkout(){
@@ -869,6 +871,36 @@ function finishWorkout(){
   document.getElementById('statRounds').textContent = state.rounds;
   showScreen('done');
 }
+
+/* ===================== WAKE LOCK (scherm blijft aan tijdens training) ===================== */
+let wakeLock = null;
+
+async function requestWakeLock(){
+  if(!('wakeLock' in navigator)) return;
+  try{
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', ()=>{ wakeLock = null; });
+  }catch(err){
+    // Kan geweigerd worden (bv. batterijbesparing of geen focus) - app werkt gewoon door.
+    console.warn('Wake Lock niet beschikbaar:', err);
+  }
+}
+
+async function releaseWakeLock(){
+  if(wakeLock){
+    try{ await wakeLock.release(); }catch(e){ /* al vrijgegeven */ }
+    wakeLock = null;
+  }
+}
+
+// Browsers geven de wake lock automatisch vrij zodra het tabblad/de app naar de
+// achtergrond gaat (bv. korte blik op een andere app). Zodra de gebruiker terugkeert
+// tijdens een actieve training, vragen we hem opnieuw aan.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible' && screens.timer.classList.contains('active')){
+    requestWakeLock();
+  }
+});
 
 /* ===================== STICK FIGURE ANIMATIONS ===================== */
 function buildAllFigures(){
