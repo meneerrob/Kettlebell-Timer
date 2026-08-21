@@ -738,7 +738,7 @@ function updatePreview(){
   }
   const roundDuration = n*work + n*rest;
   let rounds = Math.max(1, Math.floor(totalSec/roundDuration));
-  const actualTotal = rounds*roundDuration;
+  const actualTotal = rounds*roundDuration - rest; // laatste rust na de allerlaatste oefening vervalt
   preview.classList.remove('warn');
   let html = `Eén ronde (${n} oefening${n>1?'en':''}) duurt <b>${fmtMinSec(roundDuration)}</b>. `+
              `Dat levert <b>${rounds} ronde${rounds>1?'n':''}</b> op binnen je gekozen tijd.<br>`+
@@ -755,6 +755,7 @@ function updatePreview(){
   state.totalTime = totalSec;
   state.rounds = rounds;
   state.roundDuration = roundDuration;
+  state.actualTotalSeconds = actualTotal;
 }
 
 [totalTimeInput, workTimeInput, restTimeInput].forEach(el=>{
@@ -821,9 +822,10 @@ function buildQueue(){
     q.push({type:'prepare', exId: state.selected[0], round:0});
   }
   for(let r=0; r<state.rounds; r++){
-    state.selected.forEach(exId=>{
+    state.selected.forEach((exId, idx)=>{
       q.push({type:'work', exId, round:r});
-      if(state.restTime>0) q.push({type:'rest', exId, round:r});
+      const isLastOverall = (r === state.rounds-1) && (idx === state.selected.length-1);
+      if(state.restTime>0 && !isLastOverall) q.push({type:'rest', exId, round:r});
     });
   }
   return q;
@@ -833,12 +835,46 @@ function startWorkout(){
   state.queue = buildQueue();
   state.idx = 0;
   state.paused = false;
-  state.totalRemaining = state.rounds*state.roundDuration;
+  state.totalRemaining = state.actualTotalSeconds;
   buildAllFigures();
+  unlockAudio();
   loadPhase(0);
   showScreen('timer');
   runTick();
   requestWakeLock();
+}
+
+/* ===================== GELUIDSSIGNALEN ===================== */
+let audioCtx = null;
+
+function unlockAudio(){
+  if(audioCtx) return;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if(!Ctx) return;
+  audioCtx = new Ctx();
+  // Sommige browsers (o.a. iOS Safari) starten de context 'suspended' totdat
+  // hij binnen een gebruikersactie hervat wordt - dit gebeurt hier (tik op Start).
+  if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+}
+
+function playBeep(freq, dur){
+  if(!audioCtx) return;
+  try{
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const now = audioCtx.currentTime;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.35, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  }catch(e){
+    // geluid is een extraatje - als het faalt, gaat de training gewoon door
+  }
 }
 
 function loadPhase(i){
@@ -848,6 +884,7 @@ function loadPhase(i){
   const isWork = item.type==='work';
   const isPrepare = item.type==='prepare';
   state.phaseRemaining = isWork ? state.workTime : (isPrepare ? PREPARE_TIME : state.restTime);
+  state.lastBeepSecond = null; // reset zodat de aftel-beeps opnieuw kunnen afgaan voor deze fase
 
   document.getElementById('exerciseName').textContent = isWork ? ex.name : (isPrepare ? ex.name : 'Rust');
   document.getElementById('roundTag').textContent = `Ronde ${item.round+1} / ${state.rounds}`;
@@ -900,7 +937,7 @@ function updateTimerDisplay(){
   td.classList.toggle('rest', document.getElementById('stage').classList.contains('phase-rest'));
 
   document.getElementById('totalRemaining').textContent = fmtMinSec(state.totalRemaining);
-  const pct = 100 * (1 - state.totalRemaining/(state.rounds*state.roundDuration));
+  const pct = 100 * (1 - state.totalRemaining/state.actualTotalSeconds);
   document.getElementById('gaugeBarFill').style.width = Math.min(100,Math.max(0,pct))+'%';
 }
 
@@ -916,7 +953,15 @@ function runTick(){
     if(state.queue[state.idx] && state.queue[state.idx].type !== 'prepare'){
       state.totalRemaining -= delta;
     }
+
+    const secondsLeft = Math.ceil(state.phaseRemaining);
+    if(secondsLeft <= 5 && secondsLeft >= 1 && secondsLeft !== state.lastBeepSecond){
+      state.lastBeepSecond = secondsLeft;
+      playBeep(660, 0.08);
+    }
+
     if(state.phaseRemaining <= 0){
+      playBeep(880, 0.16);
       advance(false);
     } else {
       updateTimerDisplay();
