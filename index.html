@@ -94,12 +94,6 @@
     margin:0 0 28px;
     letter-spacing:0.02em;
   }
-  .divider{
-    width:64px;height:3px;
-    background:repeating-linear-gradient(90deg,var(--rust) 0 8px, transparent 8px 12px);
-    margin:0 0 26px;
-    opacity:.85;
-  }
 
   /* ---------- Setup card ---------- */
   .card{
@@ -310,23 +304,13 @@
   }
   .stop-btn:hover{border-color:var(--rust);color:var(--rust-glow);}
 
-  .phase-label{
-    font-family:'Oswald', sans-serif;
-    text-transform:uppercase;
-    letter-spacing:0.08em;
-    font-size:15px;
-    color:var(--chalk-dim);
-    margin:10px 0 2px;
-  }
-  .phase-label.rest{color:var(--rest-glow);}
-
   .exercise-name{
     font-family:'Oswald', sans-serif;
     font-weight:700;
     text-transform:uppercase;
     font-size:30px;
     letter-spacing:0.02em;
-    margin:0 0 10px;
+    margin:6px 0 10px;
     text-align:center;
     color:var(--rust-glow);
   }
@@ -411,45 +395,32 @@
     background:var(--rust-glow);
   }
 
-  .dots{
-    display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;justify-content:center;
-    max-width:400px;
-  }
-  .dot{
-    width:9px;height:9px;border-radius:50%;
-    background:var(--iron);
-  }
-  .dot.done{background:var(--rust-dark);}
-  .dot.current{background:var(--rust);box-shadow:0 0 0 3px rgba(182,255,46,0.3), 0 0 10px rgba(182,255,46,0.7);}
-
-  /* kettlebell fill gauge = total time */
+  /* totale resterende tijd + voortgangslijn (compact, geen bolletjes meer) */
   .gauge-wrap{
-    display:flex;align-items:center;gap:16px;
     background:var(--surface);
     border:1px solid var(--line);
     border-radius:14px;
-    padding:14px 18px;
+    padding:12px 16px;
     width:100%;max-width:440px;
   }
-  .gauge-kb{width:46px;height:56px;flex-shrink:0;position:relative;}
-  .gauge-kb svg{width:100%;height:100%;display:block;}
-  .gauge-info{flex:1;}
+  .gauge-row{
+    display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;
+  }
   .gauge-label{
     font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.06em;
-    font-size:11px;color:var(--chalk-dim);margin-bottom:4px;
+    font-size:11px;color:var(--chalk-dim);
   }
   .gauge-time{
     font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--rust-glow);
   }
   .gauge-bar-track{
-    height:6px;border-radius:3px;background:var(--iron);margin-top:8px;overflow:hidden;
+    height:6px;border-radius:3px;background:var(--iron);overflow:hidden;
   }
   .gauge-bar-fill{
     height:100%;background:linear-gradient(90deg,var(--rust-dark),var(--rust));
     width:0%;border-radius:3px;transition:width .3s linear;
     box-shadow:0 0 10px rgba(182,255,46,0.6);
   }
-  .gauge-kb svg{filter:drop-shadow(0 0 6px rgba(182,255,46,0.35));}
 
   .controls{
     display:flex;gap:10px;margin-top:20px;width:100%;max-width:440px;
@@ -496,11 +467,10 @@
 </head>
 <body>
 
-<!-- ============ SETUP SCREEN ============ -->
+<!-- ============ SETUP SCHERM ============ -->
 <div class="screen active" id="screen-setup">
   <div class="brand"><div class="brand-mark"></div><h1>Kettlebell Timer</h1></div>
   <p class="subtitle">Stel je training samen en ga aan de slag</p>
-  <div class="divider"></div>
 
   <div class="card">
     <div class="card-label">Totale trainingsduur <span class="hint" id="totalTimeHint">20 min</span></div>
@@ -542,7 +512,6 @@
     <button class="stop-btn" id="stopBtn">Stoppen</button>
   </div>
 
-  <div class="phase-label" id="phaseLabel">Aan de slag</div>
   <div class="exercise-name" id="exerciseName">Swing</div>
 
   <div class="stage" id="stage">
@@ -555,27 +524,12 @@
 
   <div class="tips-box" id="tipsBox"><ul id="tipsList"></ul></div>
 
-  <div class="dots" id="dots"></div>
-
   <div class="gauge-wrap">
-    <div class="gauge-kb">
-      <svg viewBox="0 0 46 56">
-        <defs>
-          <clipPath id="kbClip"><rect id="kbClipRect" x="0" y="56" width="46" height="0"/></clipPath>
-        </defs>
-        <path d="M14 20 v-4 a9 9 0 0 1 18 0 v4" fill="none" stroke="#4A4D58" stroke-width="5"/>
-        <rect x="7" y="18" width="32" height="34" rx="14" fill="#363944" stroke="#4A4D58" stroke-width="2"/>
-        <g clip-path="url(#kbClip)">
-          <path d="M14 20 v-4 a9 9 0 0 1 18 0 v4" fill="none" stroke="#B6FF2E" stroke-width="5"/>
-          <rect x="7" y="18" width="32" height="34" rx="14" fill="#B6FF2E"/>
-        </g>
-      </svg>
+    <div class="gauge-row">
+      <span class="gauge-label">Totale tijd resterend</span>
+      <span class="gauge-time" id="totalRemaining">20:00</span>
     </div>
-    <div class="gauge-info">
-      <div class="gauge-label">Totale tijd resterend</div>
-      <div class="gauge-time" id="totalRemaining">20:00</div>
-      <div class="gauge-bar-track"><div class="gauge-bar-fill" id="gaugeBarFill"></div></div>
-    </div>
+    <div class="gauge-bar-track"><div class="gauge-bar-fill" id="gaugeBarFill"></div></div>
   </div>
 
   <div class="controls">
@@ -584,7 +538,7 @@
   </div>
 </div>
 
-<!-- ============ DONE SCREEN ============ -->
+<!-- ============ EINDSCHERM ============ -->
 <div class="screen" id="screen-done">
   <div class="done-mark">
     <svg viewBox="0 0 24 24" fill="none" stroke="#B6FF2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>
@@ -800,32 +754,11 @@ function startWorkout(){
   state.idx = 0;
   state.paused = false;
   state.totalRemaining = state.rounds*state.roundDuration;
-  buildDots();
   buildAllFigures();
   loadPhase(0);
   showScreen('timer');
   runTick();
   requestWakeLock();
-}
-
-function buildDots(){
-  const dots = document.getElementById('dots');
-  dots.innerHTML = '';
-  state.queue.filter(q=>q.type==='work').forEach(()=>{
-    const d = document.createElement('div');
-    d.className = 'dot';
-    dots.appendChild(d);
-  });
-}
-function updateDots(){
-  const dots = document.getElementById('dots').children;
-  const workIndices = state.queue.map((q,i)=>q.type==='work'?i:null).filter(v=>v!==null);
-  workIndices.forEach((qi,i)=>{
-    const dot = dots[i];
-    dot.classList.remove('done','current');
-    if(qi < state.idx) dot.classList.add('done');
-    else if(qi === state.idx) dot.classList.add('current');
-  });
 }
 
 function loadPhase(i){
@@ -836,8 +769,6 @@ function loadPhase(i){
   const isPrepare = item.type==='prepare';
   state.phaseRemaining = isWork ? state.workTime : (isPrepare ? PREPARE_TIME : state.restTime);
 
-  document.getElementById('phaseLabel').textContent = isWork ? 'Aan de slag' : (isPrepare ? 'Training start over' : 'Rust');
-  document.getElementById('phaseLabel').className = 'phase-label' + (isWork?'':' rest');
   document.getElementById('exerciseName').textContent = isWork ? ex.name : (isPrepare ? ex.name : 'Rust');
   document.getElementById('roundTag').textContent = `Ronde ${item.round+1} / ${state.rounds}`;
 
@@ -848,7 +779,6 @@ function loadPhase(i){
 
   document.getElementById('stage').classList.toggle('phase-rest', !isWork);
   showFigure(isWork ? item.exId : null);
-  updateDots();
   updateTimerDisplay();
 
   document.getElementById('skipBtn').textContent = isPrepare ? 'Start nu' : 'Volgende';
@@ -889,8 +819,6 @@ function updateTimerDisplay(){
   document.getElementById('totalRemaining').textContent = fmtMinSec(state.totalRemaining);
   const pct = 100 * (1 - state.totalRemaining/(state.rounds*state.roundDuration));
   document.getElementById('gaugeBarFill').style.width = Math.min(100,Math.max(0,pct))+'%';
-  document.getElementById('kbClipRect').setAttribute('y', 56 - (56*pct/100));
-  document.getElementById('kbClipRect').setAttribute('height', 56*pct/100);
 }
 
 function runTick(){
