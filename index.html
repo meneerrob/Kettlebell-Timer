@@ -592,6 +592,35 @@ const TIPS = {
   halo:       ["Houd de bell dicht bij je hoofd", "Beweeg rustig en gecontroleerd", "Span je core aan tijdens het draaien"],
 };
 
+/* rusttips: 1 willekeurige tip per categorie, telkens opnieuw bij elke rust */
+const REST_TIPS = {
+  ademhaling: [
+    "Adem rustig in door je neus en mond",
+    "Blijf licht bewegen op de plek",
+    "Adem langzaam uit voor sneller herstel",
+    "Open je borst en adem diep in",
+    "Schud snel al je spieren los",
+  ],
+  techniek: [
+    "Schud je handen en grip los",
+    "Houd je schouders laag en naar achteren",
+    "Loop de volgende oefening mentaal door",
+    "Focus op een goede uitvoering",
+    "Kwaliteit is belangrijker dan kwantiteit",
+  ],
+  mindset: [
+    "Elke herhaling maakt je nu sterker",
+    "Laat de vorige set los",
+    "Neem een klein slokje water",
+    "Elke stap brengt je dichterbij",
+    "Maak je klaar voor de volgende actie",
+  ],
+};
+
+function pickRestTips(){
+  return Object.values(REST_TIPS).map(list => list[Math.floor(Math.random()*list.length)]);
+}
+
 let state = {
   selected: [],   // ordered array of exercise ids
   workTime: 30,
@@ -787,6 +816,9 @@ function loadPhase(i){
   const tipsList = document.getElementById('tipsList');
   if(isWork && TIPS[item.exId]){
     tipsList.innerHTML = TIPS[item.exId].map(t=>`<li>${t}</li>`).join('');
+    tipsBox.classList.add('show');
+  } else if(item.type==='rest'){
+    tipsList.innerHTML = pickRestTips().map(t=>`<li>${t}</li>`).join('');
     tipsBox.classList.add('show');
   } else {
     tipsBox.classList.remove('show');
