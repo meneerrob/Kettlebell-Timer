@@ -159,6 +159,27 @@
     text-align:center;
     color:var(--rust-glow);
   }
+  .pill-input{
+    font-family:inherit;
+    font-weight:inherit;
+    font-size:inherit;
+    color:inherit;
+    background:none;
+    border:none;
+    outline:none;
+    width:2.4ch;
+    text-align:right;
+    padding:0;
+    -moz-appearance:textfield;
+  }
+  .pill-input::-webkit-outer-spin-button,
+  .pill-input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  .pill-input:focus{
+    color:var(--chalk);
+  }
 
   /* exercise picker */
   .ex-list{display:flex;flex-direction:column;gap:8px;}
@@ -476,7 +497,7 @@
     <div class="card-label">Totale trainingsduur <span class="hint" id="totalTimeHint">20 min</span></div>
     <div class="slider-row">
       <input type="range" id="totalTime" min="3" max="60" step="1" value="20">
-      <div class="value-pill"><span id="totalTimeVal">20</span> min</div>
+      <div class="value-pill"><input type="number" id="totalTimeVal" class="pill-input" inputmode="numeric" min="3" max="60" step="1" value="20"> min</div>
     </div>
   </div>
 
@@ -489,7 +510,7 @@
     <div class="card-label">Tijd per oefening <span class="hint" id="workHint"></span></div>
     <div class="slider-row">
       <input type="range" id="workTime" min="10" max="90" step="5" value="30">
-      <div class="value-pill"><span id="workTimeVal">30</span> sec</div>
+      <div class="value-pill"><input type="number" id="workTimeVal" class="pill-input" inputmode="numeric" min="10" max="90" step="5" value="30"> sec</div>
     </div>
   </div>
 
@@ -497,7 +518,7 @@
     <div class="card-label">Rust tussen oefeningen <span class="hint"></span></div>
     <div class="slider-row">
       <input type="range" id="restTime" min="0" max="60" step="5" value="15">
-      <div class="value-pill"><span id="restTimeVal">15</span> sec</div>
+      <div class="value-pill"><input type="number" id="restTimeVal" class="pill-input" inputmode="numeric" min="0" max="60" step="5" value="15"> sec</div>
     </div>
     <div class="preview" id="preview" style="margin-top:14px;"></div>
   </div>
@@ -697,10 +718,10 @@ function fmtMinSec(sec){
 
 function updatePreview(){
   const totalMin = parseInt(totalTimeInput.value,10);
-  document.getElementById('totalTimeVal').textContent = totalMin;
+  document.getElementById('totalTimeVal').value = totalMin;
   document.getElementById('totalTimeHint').textContent = totalMin + ' min';
-  document.getElementById('workTimeVal').textContent = workTimeInput.value;
-  document.getElementById('restTimeVal').textContent = restTimeInput.value;
+  document.getElementById('workTimeVal').value = workTimeInput.value;
+  document.getElementById('restTimeVal').value = restTimeInput.value;
 
   const n = state.selected.length;
   const work = parseInt(workTimeInput.value,10);
@@ -738,6 +759,36 @@ function updatePreview(){
 
 [totalTimeInput, workTimeInput, restTimeInput].forEach(el=>{
   el.addEventListener('input', updatePreview);
+});
+
+/* intoetsbare velden naast elke schuifbalk, gesynchroniseerd en begrensd tot dezelfde min/max */
+function clampToRange(val, min, max){
+  if(isNaN(val)) return min;
+  return Math.min(max, Math.max(min, val));
+}
+
+[
+  [document.getElementById('totalTimeVal'), totalTimeInput],
+  [document.getElementById('workTimeVal'), workTimeInput],
+  [document.getElementById('restTimeVal'), restTimeInput],
+].forEach(([valInput, sliderInput])=>{
+  const min = parseInt(sliderInput.min,10);
+  const max = parseInt(sliderInput.max,10);
+  const step = parseInt(sliderInput.step,10) || 1;
+
+  const commit = ()=>{
+    let v = clampToRange(parseInt(valInput.value,10), min, max);
+    v = min + Math.round((v-min)/step)*step; // rond af op de dichtstbijzijnde stap
+    valInput.value = v;
+    sliderInput.value = v;
+    updatePreview();
+  };
+
+  valInput.addEventListener('change', commit);
+  valInput.addEventListener('blur', commit);
+  valInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ valInput.blur(); }
+  });
 });
 
 renderExList();
