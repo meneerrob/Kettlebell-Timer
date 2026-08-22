@@ -621,7 +621,7 @@
   <div class="card">
     <div class="card-label">Workout</div>
     <div class="mode-grid" id="modeGrid">
-      <button class="mode-btn" data-mode="fullbody">
+      <button class="mode-btn selected" data-mode="fullbody">
         <span class="mode-name">Full body</span>
         <span class="mode-sub">mix van alle spiergroepen</span>
       </button>
@@ -633,14 +633,14 @@
         <span class="mode-name">Upper body</span>
         <span class="mode-sub">chest, arms, shoulders</span>
       </button>
-      <button class="mode-btn selected" data-mode="custom">
+      <button class="mode-btn" data-mode="custom">
         <span class="mode-name">Custom</span>
         <span class="mode-sub">zelf oefeningen kiezen</span>
       </button>
     </div>
   </div>
 
-  <div class="card" id="exercisesCard">
+  <div class="card" id="exercisesCard" style="display:none;">
     <div class="card-label">Oefeningen <span class="hint">tik om te (de)selecteren</span></div>
     <div class="ex-list" id="exList"></div>
   </div>
@@ -940,7 +940,7 @@ let state = {
   historyRecorded: false,
 };
 
-let workoutMode = 'custom'; // 'fullbody' | 'lowerbody' | 'upperbody' | 'custom'
+let workoutMode = 'fullbody'; // 'fullbody' | 'lowerbody' | 'upperbody' | 'custom'
 
 const modeGrid = document.getElementById('modeGrid');
 const exercisesCard = document.getElementById('exercisesCard');
