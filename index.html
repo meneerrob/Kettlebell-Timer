@@ -252,6 +252,36 @@
 
   /* exercise picker */
   .ex-list{display:flex;flex-direction:column;gap:8px;}
+
+  /* workout-type keuze (full/upper/lower/custom) */
+  .mode-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .mode-btn{
+    display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 12px;
+    cursor:pointer;
+    text-align:left;
+    transition:border-color .15s, background .15s;
+  }
+  .mode-btn.selected{
+    border-color:var(--rust);
+    background:linear-gradient(90deg, rgba(182,255,46,0.16), rgba(182,255,46,0.04));
+    box-shadow:0 0 14px rgba(182,255,46,0.18);
+  }
+  .mode-name{
+    font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.03em;
+    font-size:14px;color:var(--chalk);
+  }
+  .mode-btn.selected .mode-name{color:var(--rust-glow);}
+  .mode-sub{
+    font-size:11px;color:var(--chalk-dim);
+  }
   .ex-item{
     display:flex;
     align-items:center;
@@ -589,6 +619,28 @@
   </div>
 
   <div class="card">
+    <div class="card-label">Workout</div>
+    <div class="mode-grid" id="modeGrid">
+      <button class="mode-btn" data-mode="fullbody">
+        <span class="mode-name">Full body</span>
+        <span class="mode-sub">mix van alle spiergroepen</span>
+      </button>
+      <button class="mode-btn" data-mode="lowerbody">
+        <span class="mode-name">Lower body</span>
+        <span class="mode-sub">lower, back, core</span>
+      </button>
+      <button class="mode-btn" data-mode="upperbody">
+        <span class="mode-name">Upper body</span>
+        <span class="mode-sub">chest, arms, shoulders</span>
+      </button>
+      <button class="mode-btn selected" data-mode="custom">
+        <span class="mode-name">Custom</span>
+        <span class="mode-sub">zelf oefeningen kiezen</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card" id="exercisesCard">
     <div class="card-label">Oefeningen <span class="hint">tik om te (de)selecteren</span></div>
     <div class="ex-list" id="exList"></div>
   </div>
@@ -692,12 +744,13 @@ const EXERCISES = [
    Nog nergens actief gebruikt in de UI - puur scaffolding voor de latere
    full/upper/lower/custom workout-keuze met weighted random op basis van historie.
 
-   - Elke oefening heeft precies 1 hoofdtag (zie EXERCISES hierboven).
-   - Een workout-type is een mix van de onderliggende tags:
+/* ===================== WORKOUT-SELECTOR (full/upper/lower/custom) =====================
+   Elke oefening heeft precies 1 hoofdtag (zie EXERCISES hierboven).
+   Een workout-type is een mix van de onderliggende tags:
        fullbody  -> alle 6 tags door elkaar
        upperbody -> chest, arms, shoulders
        lowerbody -> lower, back, core
-   - Vaste aantallen automatisch te kiezen oefeningen per workout-type. */
+   Vaste aantallen automatisch te kiezen oefeningen per workout-type. */
 const WORKOUT_TAG_GROUPS = {
   fullbody:  ['lower','back','chest','core','shoulders','arms'],
   upperbody: ['chest','arms','shoulders'],
@@ -708,12 +761,81 @@ const WORKOUT_EXERCISE_COUNT = {
   upperbody: 4,
   lowerbody: 4,
 };
-/* Weighted random op basis van gebruiksgeschiedenis (nog niet actief):
-   een recent gebruikte oefening krijgt tijdelijk een verlaagde selectiekans,
-   die daarna over een paar volgende trainingen weer geleidelijk herstelt naar 100%.
-   Geschiedenis wordt per toestel onthouden (zelfde aanpak als de geluidsvoorkeur). */
-const WEIGHT_RECENT_USE = 0.4;   // kans t.o.v. normaal, direct na gebruik
-const WEIGHT_RECOVERY_SESSIONS = 3; // aantal trainingen om weer terug op 100% te komen
+
+/* Weighted random op basis van gebruiksgeschiedenis: een recent gebruikte oefening
+   krijgt tijdelijk een verlaagde selectiekans, die daarna over een paar volgende
+   trainingen weer geleidelijk herstelt naar 100%. Handmatig gekozen (Custom) oefeningen
+   tellen ook mee, maar minder zwaar dan automatisch gekozen oefeningen. Geschiedenis
+   wordt per toestel onthouden (zelfde aanpak als de geluidsvoorkeur). */
+const WEIGHT_RECENT_USE_AUTO = 0.4;   // kans t.o.v. normaal, direct na een automatische keuze
+const WEIGHT_RECENT_USE_MANUAL = 0.7; // kans t.o.v. normaal, direct na handmatige (Custom) keuze
+const WEIGHT_RECOVERY_SESSIONS = 3;   // aantal trainingen om weer terug op 100% te komen
+
+function loadExerciseHistory(){
+  try{
+    return JSON.parse(localStorage.getItem('kbtimer_history') || '{}');
+  }catch(e){ return {}; }
+}
+function saveExerciseHistory(hist){
+  try{ localStorage.setItem('kbtimer_history', JSON.stringify(hist)); }catch(e){}
+}
+function getExerciseWeight(exId, hist){
+  const entry = hist[exId];
+  if(!entry || entry.cooldown <= 0) return 1;
+  return entry.startWeight + (1-entry.startWeight) * (1 - entry.cooldown/WEIGHT_RECOVERY_SESSIONS);
+}
+/* Wordt aangeroepen zodra een training eindigt (afgerond of voortijdig gestopt).
+   usedIds: welke oefeningen daadwerkelijk aan bod zijn gekomen deze sessie.
+   isAuto: true bij Full/Lower/Upper (zwaardere afkoeling), false bij Custom (lichtere afkoeling). */
+function recordExerciseUsage(usedIds, isAuto){
+  if(!usedIds || usedIds.length === 0) return;
+  const hist = loadExerciseHistory();
+  const startWeight = isAuto ? WEIGHT_RECENT_USE_AUTO : WEIGHT_RECENT_USE_MANUAL;
+  const usedSet = new Set(usedIds);
+  EXERCISES.forEach(ex=>{
+    if(usedSet.has(ex.id)){
+      hist[ex.id] = { cooldown: WEIGHT_RECOVERY_SESSIONS, startWeight };
+    } else if(hist[ex.id]){
+      hist[ex.id].cooldown -= 1;
+      if(hist[ex.id].cooldown <= 0) delete hist[ex.id];
+    }
+  });
+  saveExerciseHistory(hist);
+}
+/* Kiest `count` oefeningen uit de opgegeven tags, gewogen naar recente gebruiksgeschiedenis
+   (minder kans op net gebruikte oefeningen), zonder een oefening dubbel te kiezen tenzij
+   de pool kleiner is dan het gevraagde aantal. Volgorde wordt daarna willekeurig geschud. */
+function pickWeightedExercises(tags, count){
+  const hist = loadExerciseHistory();
+  let pool = EXERCISES.filter(ex => tags.includes(ex.tag));
+  const picked = [];
+  const candidates = pool.slice();
+  while(picked.length < count && candidates.length > 0){
+    const weights = candidates.map(ex => getExerciseWeight(ex.id, hist));
+    const total = weights.reduce((a,b)=>a+b, 0);
+    let r = Math.random() * total;
+    let idx = candidates.length - 1;
+    for(let i=0; i<weights.length; i++){
+      if(r < weights[i]){ idx = i; break; }
+      r -= weights[i];
+    }
+    picked.push(candidates[idx].id);
+    candidates.splice(idx, 1);
+  }
+  // pool was kleiner dan het gevraagde aantal: vul aan met willekeurige herhalingen
+  while(picked.length < count && pool.length > 0){
+    picked.push(pool[Math.floor(Math.random()*pool.length)].id);
+  }
+  // volgorde schudden
+  for(let i=picked.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [picked[i],picked[j]] = [picked[j],picked[i]];
+  }
+  return picked;
+}
+function autoSelectExercises(mode){
+  return pickWeightedExercises(WORKOUT_TAG_GROUPS[mode], WORKOUT_EXERCISE_COUNT[mode]);
+}
 
 /* small static icon (for setup list) per exercise, simple line glyphs */
 const ICONS = {
@@ -814,7 +936,22 @@ let state = {
   timerId: null,
   paused: false,
   lastTick: null,
+  sessionExercises: new Set(), // welke oefeningen deze sessie aan bod kwamen (voor geschiedenis)
+  historyRecorded: false,
 };
+
+let workoutMode = 'custom'; // 'fullbody' | 'lowerbody' | 'upperbody' | 'custom'
+
+const modeGrid = document.getElementById('modeGrid');
+const exercisesCard = document.getElementById('exercisesCard');
+modeGrid.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    workoutMode = btn.dataset.mode;
+    modeGrid.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('selected', b===btn));
+    exercisesCard.style.display = (workoutMode === 'custom') ? '' : 'none';
+    updatePreview();
+  });
+});
 
 /* ===================== SETUP SCREEN ===================== */
 const exList = document.getElementById('exList');
@@ -879,7 +1016,7 @@ function updatePreview(){
   document.getElementById('workTimeVal').value = workTimeInput.value;
   document.getElementById('restTimeVal').value = restTimeInput.value;
 
-  const n = state.selected.length;
+  const n = (workoutMode === 'custom') ? state.selected.length : WORKOUT_EXERCISE_COUNT[workoutMode];
   const work = parseInt(workTimeInput.value,10);
   const rest = parseInt(restTimeInput.value,10);
   const totalSec = totalMin*60;
@@ -988,10 +1125,17 @@ function buildQueue(){
 }
 
 function startWorkout(){
+  if(workoutMode !== 'custom'){
+    state.selected = autoSelectExercises(workoutMode);
+    // roundDuration/rounds/actualTotalSeconds zijn in updatePreview() al berekend
+    // op basis van het vaste aantal voor dit workout-type, dus die kloppen al.
+  }
   state.queue = buildQueue();
   state.idx = 0;
   state.paused = false;
   state.totalRemaining = state.actualTotalSeconds;
+  state.sessionExercises = new Set();
+  state.historyRecorded = false;
   buildAllFigures();
   unlockAudio();
   loadPhase(0);
@@ -1069,6 +1213,7 @@ function loadPhase(i){
   const isPrepare = item.type==='prepare';
   state.phaseRemaining = isWork ? state.workTime : (isPrepare ? PREPARE_TIME : state.restTime);
   state.lastBeepSecond = null; // reset zodat de aftel-beeps opnieuw kunnen afgaan voor deze fase
+  if(isWork){ state.sessionExercises.add(item.exId); }
 
   document.getElementById('exerciseName').textContent = isWork ? ex.name : (isPrepare ? ex.name : 'Rust');
   document.getElementById('roundTag').textContent = `Ronde ${item.round+1} / ${state.rounds}`;
@@ -1178,6 +1323,10 @@ function togglePause(){
 function stopTimer(){
   clearInterval(state.timerId);
   releaseWakeLock();
+  if(!state.historyRecorded){
+    recordExerciseUsage(Array.from(state.sessionExercises), workoutMode !== 'custom');
+    state.historyRecorded = true;
+  }
 }
 
 function finishWorkout(){
