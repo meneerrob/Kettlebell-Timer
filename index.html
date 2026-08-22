@@ -663,19 +663,44 @@
 <script>
 /* ===================== DATA ===================== */
 const EXERCISES = [
-  { id:'swing',      name:'Swing',           groups:['full'] },
-  { id:'goblet',     name:'Goblet squat',    groups:['lower'] },
-  { id:'curl',       name:'Curl',            groups:['upper'] },
-  { id:'halo',       name:'Halo',            groups:['upper'] },
-  { id:'row',        name:'Row',             groups:['upper'] },
-  { id:'press',      name:'Overhead press',  groups:['upper'] },
-  { id:'lunge',      name:'Reverse Lunge',   groups:['lower'] },
-  { id:'deadlift',   name:'Deadlift',        groups:['lower'] },
-  { id:'snatch',     name:'Snatch',          groups:['full'] },
-  { id:'floorpress', name:'Floor Press',     groups:['upper'] },
+  { id:'swing',      name:'Swing',           tag:'lower' },
+  { id:'goblet',     name:'Goblet squat',    tag:'lower' },
+  { id:'curl',       name:'Curl',            tag:'arms' },
+  { id:'halo',       name:'Halo',            tag:'core' },
+  { id:'row',        name:'Row',             tag:'back' },
+  { id:'press',      name:'Overhead press',  tag:'shoulders' },
+  { id:'lunge',      name:'Reverse Lunge',   tag:'lower' },
+  { id:'deadlift',   name:'Deadlift',        tag:'lower' },
+  { id:'snatch',     name:'Snatch',          tag:'shoulders' },
+  { id:'floorpress', name:'Floor Press',     tag:'chest' },
 ];
-/* 'groups' is voorbereiding op de toekomstige full/upper/lower/custom workout-keuze;
-   wordt nu nog nergens in de UI gebruikt en kan later verfijnd worden. */
+
+/* ===================== VOORBEREIDING TOEKOMSTIGE WORKOUT-SELECTOR =====================
+   Nog nergens actief gebruikt in de UI - puur scaffolding voor de latere
+   full/upper/lower/custom workout-keuze met weighted random op basis van historie.
+
+   - Elke oefening heeft precies 1 hoofdtag (zie EXERCISES hierboven).
+   - Een workout-type is een mix van de onderliggende tags:
+       fullbody  -> alle 6 tags door elkaar
+       upperbody -> chest, arms, shoulders
+       lowerbody -> lower, back, core
+   - Vaste aantallen automatisch te kiezen oefeningen per workout-type. */
+const WORKOUT_TAG_GROUPS = {
+  fullbody:  ['lower','back','chest','core','shoulders','arms'],
+  upperbody: ['chest','arms','shoulders'],
+  lowerbody: ['lower','back','core'],
+};
+const WORKOUT_EXERCISE_COUNT = {
+  fullbody:  6,
+  upperbody: 4,
+  lowerbody: 4,
+};
+/* Weighted random op basis van gebruiksgeschiedenis (nog niet actief):
+   een recent gebruikte oefening krijgt tijdelijk een verlaagde selectiekans,
+   die daarna over een paar volgende trainingen weer geleidelijk herstelt naar 100%.
+   Geschiedenis wordt per toestel onthouden (zelfde aanpak als de geluidsvoorkeur). */
+const WEIGHT_RECENT_USE = 0.4;   // kans t.o.v. normaal, direct na gebruik
+const WEIGHT_RECOVERY_SESSIONS = 3; // aantal trainingen om weer terug op 100% te komen
 
 /* small static icon (for setup list) per exercise, simple line glyphs */
 const ICONS = {
