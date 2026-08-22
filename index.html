@@ -663,16 +663,29 @@
 <script>
 /* ===================== DATA ===================== */
 const EXERCISES = [
-  { id:'swing',      name:'Swing',           tag:'lower' },
+  { id:'swing',      name:'Swing',           tag:'back' },
   { id:'goblet',     name:'Goblet squat',    tag:'lower' },
   { id:'curl',       name:'Curl',            tag:'arms' },
-  { id:'halo',       name:'Halo',            tag:'core' },
+  { id:'halo',       name:'Halo',            tag:'shoulders' },
   { id:'row',        name:'Row',             tag:'back' },
   { id:'press',      name:'Overhead press',  tag:'shoulders' },
   { id:'lunge',      name:'Reverse Lunge',   tag:'lower' },
   { id:'deadlift',   name:'Deadlift',        tag:'lower' },
-  { id:'snatch',     name:'Snatch',          tag:'shoulders' },
+  { id:'snatch',     name:'Snatch',          tag:'back' },
   { id:'floorpress', name:'Floor Press',     tag:'chest' },
+  { id:'rdl',            name:'Romanian Deadlift (RDL)',        tag:'lower' },
+  { id:'laterallunge',   name:'Lateral Lunge',                  tag:'lower' },
+  { id:'pullover',       name:'Kettlebell Pullover',             tag:'back' },
+  { id:'pushup',         name:'Kettlebell Push-up',              tag:'chest' },
+  { id:'chestpress',     name:'Kettlebell Chest Press',          tag:'chest' },
+  { id:'aroundtheworld', name:'Around The World',                tag:'core' },
+  { id:'plank',          name:'Kettlebell Plank Hold',           tag:'core' },
+  { id:'sidebend',       name:'Kettlebell Side Bend',            tag:'core' },
+  { id:'suitcase',       name:'Suitcase Hold / March',           tag:'core' },
+  { id:'arnoldpress',    name:'Kettlebell Arnold Press',         tag:'shoulders' },
+  { id:'tricepext',      name:'Kettlebell Triceps Extension',    tag:'arms' },
+  { id:'hammercurl',     name:'Kettlebell Hammer Curl',          tag:'arms' },
+  { id:'overheadtricep', name:'Overhead Triceps Extension',      tag:'arms' },
 ];
 
 /* ===================== VOORBEREIDING TOEKOMSTIGE WORKOUT-SELECTOR =====================
@@ -714,6 +727,19 @@ const ICONS = {
   row: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="14" cy="10" r="4"/><path d="M14 14 L24 24 M24 24 L20 34 M24 24 L32 30 M18 18 L28 20 M28 20 L22 26"/><circle cx="28" cy="20" r="3" fill="currentColor" stroke="none"/></svg>`,
   lunge: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="18" cy="8" r="4"/><path d="M18 12 L18 22 M18 22 L10 30 M18 22 L26 34 M12 17 L12 24 M24 17 L24 24"/><circle cx="18" cy="19" r="3" fill="currentColor" stroke="none"/></svg>`,
   floorpress: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><path d="M6 26 L34 26 M12 26 L12 32 M28 26 L28 32 M20 26 L20 18 M20 18 L14 12 M20 18 L26 12"/><circle cx="14" cy="10" r="3" fill="currentColor" stroke="none"/><circle cx="26" cy="10" r="3" fill="currentColor" stroke="none"/></svg>`,
+  rdl: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="19" cy="10" r="4"/><path d="M19 14 L22 22 M22 22 L18 32 M22 22 L28 30 M19 16 L13 28 M13 28 L13 32"/><circle cx="13" cy="30" r="3" fill="currentColor" stroke="none"/></svg>`,
+  laterallunge: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="18" cy="8" r="4"/><path d="M18 12 L18 20 M18 20 L8 30 M18 20 L28 32 M18 20 L18 30"/><circle cx="18" cy="19" r="3" fill="currentColor" stroke="none"/></svg>`,
+  pullover: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="10" cy="24" r="4"/><path d="M14 24 L26 24 M26 24 L32 30 M20 24 L10 14"/><circle cx="8" cy="11" r="3" fill="currentColor" stroke="none"/></svg>`,
+  pushup: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="8" cy="22" r="4"/><path d="M12 22 L30 24 M16 22 L16 32"/><circle cx="16" cy="34" r="3" fill="currentColor" stroke="none"/></svg>`,
+  chestpress: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="18" cy="8" r="4"/><path d="M18 12 L18 24 M18 24 L14 34 M18 24 L22 34 M18 16 L28 18"/><circle cx="30" cy="18" r="3" fill="currentColor" stroke="none"/></svg>`,
+  aroundtheworld: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="20" cy="10" r="4"/><path d="M20 14 L20 24 M20 24 L14 34 M20 24 L26 34 M12 22 a8 6 0 1 0 16 0 a8 6 0 1 0 -16 0"/></svg>`,
+  plank: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="8" cy="20" r="4"/><path d="M12 20 L30 22 M14 20 L14 30 M14 30 L20 30"/></svg>`,
+  sidebend: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="24" cy="8" r="4"/><path d="M24 12 L20 22 M20 22 L14 32 M20 22 L26 32 M24 16 L28 26"/><circle cx="29" cy="28" r="3" fill="currentColor" stroke="none"/></svg>`,
+  suitcase: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="18" cy="8" r="4"/><path d="M18 12 L18 24 M18 24 L10 30 M18 24 L24 34 M18 16 L24 24"/><circle cx="25" cy="26" r="3" fill="currentColor" stroke="none"/></svg>`,
+  arnoldpress: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="20" cy="10" r="4"/><path d="M20 14 L20 26 M20 26 L14 36 M20 26 L26 36 M20 16 L24 22 M24 22 L20 4"/><circle cx="20" cy="2" r="3" fill="currentColor" stroke="none"/></svg>`,
+  tricepext: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="20" cy="12" r="4"/><path d="M20 16 L20 28 M20 28 L14 38 M20 28 L26 38 M20 16 L20 6 M20 6 L14 10"/><circle cx="13" cy="11" r="3" fill="currentColor" stroke="none"/></svg>`,
+  hammercurl: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="20" cy="8" r="4"/><path d="M20 12 L20 24 M20 24 L14 34 M20 24 L26 34 M26 16 L28 24 M28 24 L24 16"/><circle cx="24" cy="15" r="3" fill="currentColor" stroke="none"/></svg>`,
+  overheadtricep: `<svg viewBox="0 0 40 40" class="fig-stroke" stroke="currentColor" fill="none" stroke-width="3"><circle cx="20" cy="12" r="4"/><path d="M20 16 L20 28 M20 28 L14 38 M20 28 L26 38 M16 16 L14 8 M24 16 L26 8"/><circle cx="20" cy="6" r="3" fill="currentColor" stroke="none"/></svg>`,
 };
 
 /* technische aandachtspunten per oefening */
@@ -728,6 +754,19 @@ const TIPS = {
   deadlift:   ["Rug recht, borst omhoog", "Kettlebell dicht bij de schenen", "Duw de vloer weg met je hielen"],
   snatch:     ["Laat de bell los boven aan de zwaai", "Vang 'm zacht met gestrekte arm boven je hoofd", "De heup doet het werk, niet de schouder"],
   floorpress: ["Ellebogen onder een hoek van 45°", "Druk zonder de schouders van de grond", "Volledig uitstrekken zonder te vergrendelen"],
+  rdl:            ["Lichte knieknik, daarna heup naar achteren", "Bell dicht bij de benen", "Voel de rekking in de hamstrings"],
+  laterallunge:   ["Stap breed opzij, knie boven de enkel", "Andere been blijft gestrekt", "Duw terug via de werkende voet"],
+  pullover:       ["Armen gestrekt, beweging komt uit de schouders", "Ribben laag houden, rug plat op de grond", "Gecontroleerd zakken, niet laten vallen"],
+  pushup:         ["Lichaam in één rechte lijn", "Ellebogen onder een hoek van 45°", "Core aangespannen tijdens de hele beweging"],
+  chestpress:     ["Druk recht naar voren, niet omhoog", "Uitademen bij het drukken", "Ellebogen niet volledig op slot"],
+  aroundtheworld: ["Bell dicht om het middel laten cirkelen", "Core aangespannen, romp blijft stabiel", "Beide richtingen even vaak"],
+  plank:          ["Lichaam in één lijn van hoofd tot hiel", "Adem rustig door", "Heupen niet laten zakken of omhoog duwen"],
+  sidebend:       ["Beweeg puur zijwaarts, niet naar voren", "Kleine, gecontroleerde beweging", "Voel de zijkant van de romp werken"],
+  suitcase:       ["Romp rechtop, niet doorzakken naar één kant", "Kleine, gecontroleerde pasjes", "Schouders laag en naar achteren"],
+  arnoldpress:    ["Start met de bell dicht bij de schouder", "Draai en druk in één vloeiende beweging", "Eindig met de arm volledig gestrekt"],
+  tricepext:      ["Elleboog blijft op dezelfde plek", "Alleen de onderarm beweegt", "Volledig uitstrekken bovenin"],
+  hammercurl:     ["Neutrale grip, duim naar boven", "Elleboog dicht tegen het lichaam", "Gecontroleerd zakken"],
+  overheadtricep: ["Beide ellebogen wijzen naar het plafond", "Zak rustig achter het hoofd", "Druk volledig door tot gestrekt"],
 };
 
 /* rusttips: 1 willekeurige tip per categorie, telkens opnieuw bij elke rust */
@@ -1183,7 +1222,11 @@ function buildAllFigures(){
   const dur = {
     swing:'1.3s', goblet:'1.8s', press:'1.4s',
     snatch:'1.6s', deadlift:'1.8s', curl:'1.5s', halo:'2.6s',
-    row:'1.5s', lunge:'2.0s', floorpress:'1.5s'
+    row:'1.5s', lunge:'2.0s', floorpress:'1.5s',
+    rdl:'1.8s', laterallunge:'2.0s', pullover:'2.0s', pushup:'1.6s',
+    chestpress:'1.4s', aroundtheworld:'2.8s', plank:'3.2s', sidebend:'1.6s',
+    suitcase:'1.4s', arnoldpress:'1.6s', tricepext:'1.4s', hammercurl:'1.5s',
+    overheadtricep:'1.6s'
   };
   const svg = `
   <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -1394,6 +1437,232 @@ function buildAllFigures(){
       <polyline class="fig-stroke" points="108,72 110,50"/>
       <circle class="fig-kb" cx="100" cy="30" r="10">
         <animateMotion path="M0,0 a22,18 0 1 1 -0.1,0 z" dur="${dur.halo}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- ROMANIAN DEADLIFT (RDL): lichte knieknik, heup naar achteren, bell dicht bij de benen tot ongeveer scheenhoogte -->
+    <g id="fig-rdl" class="fig-group">
+      <circle class="fig-stroke" cx="110" cy="66" r="12">
+        <animate attributeName="cx" values="110;100;110" keyTimes="0;0.5;1" dur="${dur.rdl}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="66;45;66" keyTimes="0;0.5;1" dur="${dur.rdl}" repeatCount="indefinite"/>
+      </circle>
+      <polyline class="fig-stroke" points="105,80 97,113">
+        <animate attributeName="points" values="105,80 97,113;100,62 100,108;105,80 97,113" keyTimes="0;0.5;1" dur="${dur.rdl}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="97,113 92,140 88,168">
+        <animate attributeName="points" values="97,113 92,140 88,168;100,108 92,138 90,168;97,113 92,140 88,168" keyTimes="0;0.5;1" dur="${dur.rdl}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="97,113 104,140 108,168">
+        <animate attributeName="points" values="97,113 104,140 108,168;100,108 108,138 110,168;97,113 104,140 108,168" keyTimes="0;0.5;1" dur="${dur.rdl}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="105,80 100,145">
+        <animate attributeName="points" values="105,80 100,145;100,62 96,118;105,80 100,145" keyTimes="0;0.5;1" dur="${dur.rdl}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="100" cy="145" r="11">
+        <animate attributeName="cx" values="100;96;100" keyTimes="0;0.5;1" dur="${dur.rdl}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="145;118;145" keyTimes="0;0.5;1" dur="${dur.rdl}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- LATERAL LUNGE: brede stap opzij, werkbeen buigt diep, ander been blijft gestrekt -->
+    <g id="fig-laterallunge" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="45" r="12">
+        <animate attributeName="cy" values="45;62;45" keyTimes="0;0.5;1" dur="${dur.laterallunge}" repeatCount="indefinite"/>
+      </circle>
+      <polyline class="fig-stroke" points="100,60 100,108">
+        <animate attributeName="points" values="100,60 100,108;100,74 100,112;100,60 100,108" keyTimes="0;0.5;1" dur="${dur.laterallunge}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="100,108 90,150 85,168">
+        <animate attributeName="points" values="100,108 90,150 85,168;100,112 88,150 82,168;100,108 90,150 85,168" keyTimes="0;0.5;1" dur="${dur.laterallunge}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="100,108 108,138 110,168">
+        <animate attributeName="points" values="100,108 108,138 110,168;100,112 122,142 128,168;100,108 108,138 110,168" keyTimes="0;0.5;1" dur="${dur.laterallunge}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="92,66 88,84 100,95">
+        <animate attributeName="points" values="92,66 88,84 100,95;92,80 88,98 100,105;92,66 88,84 100,95" keyTimes="0;0.5;1" dur="${dur.laterallunge}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="108,66 112,84 100,95">
+        <animate attributeName="points" values="108,66 112,84 100,95;108,80 112,98 100,105;108,66 112,84 100,95" keyTimes="0;0.5;1" dur="${dur.laterallunge}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="100" cy="95" r="11">
+        <animate attributeName="cy" values="95;105;95" keyTimes="0;0.5;1" dur="${dur.laterallunge}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- KETTLEBELL PULLOVER: liggend, gestrekte armen bewegen van boven de borst naar achter het hoofd -->
+    <g id="fig-pullover" class="fig-group">
+      <circle class="fig-stroke" cx="42" cy="138" r="10"/>
+      <polyline class="fig-stroke" points="52,138 78,138 100,138"/>
+      <polyline class="fig-stroke" points="78,138 78,150 90,150"/>
+      <polyline class="fig-stroke" points="100,138 128,146 128,158"/>
+      <polyline class="fig-stroke" points="100,132 100,108">
+        <animate attributeName="points" values="100,132 100,108;100,132 60,148;100,132 100,108" keyTimes="0;0.5;1" dur="${dur.pullover}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="100" cy="105" r="10">
+        <animate attributeName="cx" values="100;28;100" keyTimes="0;0.5;1" dur="${dur.pullover}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="105;150;105" keyTimes="0;0.5;1" dur="${dur.pullover}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- KETTLEBELL PUSH-UP: plank-positie, ellebogen buigen om de borst richting de grond te laten zakken -->
+    <g id="fig-pushup" class="fig-group">
+      <circle class="fig-stroke" cx="40" cy="120" r="10">
+        <animate attributeName="cy" values="120;132;120" keyTimes="0;0.5;1" dur="${dur.pushup}" repeatCount="indefinite"/>
+      </circle>
+      <polyline class="fig-stroke" points="50,120 100,120 150,124">
+        <animate attributeName="points" values="50,120 100,120 150,124;52,132 100,133 150,128;50,120 100,120 150,124" keyTimes="0;0.5;1" dur="${dur.pushup}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="55,120 56,136 58,150">
+        <animate attributeName="points" values="55,120 56,136 58,150;55,132 63,140 58,150;55,120 56,136 58,150" keyTimes="0;0.5;1" dur="${dur.pushup}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="58" cy="150" r="9"/>
+    </g>
+
+    <!-- KETTLEBELL CHEST PRESS: staand, bell(s) vanaf de borst recht naar voren gedrukt -->
+    <g id="fig-chestpress" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="48" r="12"/>
+      <polyline class="fig-stroke" points="100,64 100,110"/>
+      <polyline class="fig-stroke" points="100,110 92,138 90,168"/>
+      <polyline class="fig-stroke" points="100,110 108,138 110,168"/>
+      <polyline class="fig-stroke" points="92,66 88,110"/>
+      <polyline class="fig-stroke" points="108,66 92,82 94,92">
+        <animate attributeName="points" values="108,66 92,82 94,92;108,66 100,72 130,75;108,66 92,82 94,92" keyTimes="0;0.5;1" dur="${dur.chestpress}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="94" cy="92" r="11">
+        <animate attributeName="cx" values="94;130;94" keyTimes="0;0.5;1" dur="${dur.chestpress}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="92;75;92" keyTimes="0;0.5;1" dur="${dur.chestpress}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- AROUND THE WORLD: bell cirkelt rustig om het middel, romp blijft stabiel -->
+    <g id="fig-aroundtheworld" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="50" r="12"/>
+      <polyline class="fig-stroke" points="100,64 100,112"/>
+      <polyline class="fig-stroke" points="100,112 90,140 88,168"/>
+      <polyline class="fig-stroke" points="100,112 110,140 112,168"/>
+      <polyline class="fig-stroke" points="92,72 90,100"/>
+      <polyline class="fig-stroke" points="108,72 110,100"/>
+      <circle class="fig-kb" cx="100" cy="90" r="10">
+        <animateMotion path="M0,0 a26,14 0 1 1 -0.1,0 z" dur="${dur.aroundtheworld}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- KETTLEBELL PLANK HOLD: statische onderarm-plank, isometrische houding -->
+    <g id="fig-plank" class="fig-group">
+      <circle class="fig-stroke" cx="38" cy="122" r="10">
+        <animate attributeName="cy" values="122;124;122" dur="${dur.plank}" repeatCount="indefinite"/>
+      </circle>
+      <polyline class="fig-stroke" points="48,122 100,122 150,126">
+        <animate attributeName="points" values="48,122 100,122 150,126;50,124 100,124 150,126;48,122 100,122 150,126" dur="${dur.plank}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="55,122 56,140 58,152"/>
+      <polyline class="fig-stroke" points="58,152 68,152"/>
+      <circle class="fig-kb" cx="63" cy="152" r="8"/>
+    </g>
+
+    <!-- KETTLEBELL SIDE BEND: romp buigt puur zijwaarts, bell glijdt langs het been omlaag en weer omhoog -->
+    <g id="fig-sidebend" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="45" r="12">
+        <animate attributeName="cx" values="100;112;100" keyTimes="0;0.5;1" dur="${dur.sidebend}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="45;56;45" keyTimes="0;0.5;1" dur="${dur.sidebend}" repeatCount="indefinite"/>
+      </circle>
+      <polyline class="fig-stroke" points="100,60 100,110">
+        <animate attributeName="points" values="100,60 100,110;112,68 100,110;100,60 100,110" keyTimes="0;0.5;1" dur="${dur.sidebend}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="100,110 92,138 90,168"/>
+      <polyline class="fig-stroke" points="100,110 108,138 110,168"/>
+      <polyline class="fig-stroke" points="92,66 88,110">
+        <animate attributeName="points" values="92,66 88,110;104,74 88,110;92,66 88,110" keyTimes="0;0.5;1" dur="${dur.sidebend}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="108,66 108,110">
+        <animate attributeName="points" values="108,66 108,110;120,76 118,135;108,66 108,110" keyTimes="0;0.5;1" dur="${dur.sidebend}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="108" cy="110" r="10">
+        <animate attributeName="cx" values="108;118;108" keyTimes="0;0.5;1" dur="${dur.sidebend}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="110;135;110" keyTimes="0;0.5;1" dur="${dur.sidebend}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- SUITCASE HOLD / MARCH: bell statisch naast het lichaam vastgehouden, benen marcheren afwisselend -->
+    <g id="fig-suitcase" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="45" r="12"/>
+      <polyline class="fig-stroke" points="100,60 100,110"/>
+      <polyline class="fig-stroke" points="100,110 90,120 88,145">
+        <animate attributeName="points" values="100,110 90,120 88,145;100,110 92,138 90,168;100,110 90,120 88,145" keyTimes="0;0.5;1" dur="${dur.suitcase}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="100,110 108,138 110,168">
+        <animate attributeName="points" values="100,110 108,138 110,168;100,110 110,120 112,145;100,110 108,138 110,168" keyTimes="0;0.5;1" dur="${dur.suitcase}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="92,66 88,110"/>
+      <polyline class="fig-stroke" points="108,66 112,110"/>
+      <circle class="fig-kb" cx="112" cy="112" r="10"/>
+    </g>
+
+    <!-- KETTLEBELL ARNOLD PRESS: start dicht bij de schouder met neutrale grip, drukt roterend naar boven -->
+    <g id="fig-arnoldpress" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="48" r="12">
+        <animate attributeName="cy" values="48;40;48" keyTimes="0;0.5;1" dur="${dur.arnoldpress}" repeatCount="indefinite"/>
+      </circle>
+      <polyline class="fig-stroke" points="100,64 100,110"/>
+      <polyline class="fig-stroke" points="100,110 92,138 90,168"/>
+      <polyline class="fig-stroke" points="100,110 108,138 110,168"/>
+      <polyline class="fig-stroke" points="92,66 88,112"/>
+      <polyline class="fig-stroke" points="108,66 102,84 108,92">
+        <animate attributeName="points" values="108,66 102,84 108,92;108,66 103,50 100,38;108,66 102,84 108,92" keyTimes="0;0.5;1" dur="${dur.arnoldpress}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="108" cy="92" r="11">
+        <animate attributeName="cx" values="108;100;108" keyTimes="0;0.5;1" dur="${dur.arnoldpress}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="92;38;92" keyTimes="0;0.5;1" dur="${dur.arnoldpress}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- KETTLEBELL TRICEPS EXTENSION: elleboog blijft op zijn plek, alleen de onderarm zakt achter het hoofd -->
+    <g id="fig-tricepext" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="48" r="12"/>
+      <polyline class="fig-stroke" points="100,64 100,110"/>
+      <polyline class="fig-stroke" points="100,110 92,138 90,168"/>
+      <polyline class="fig-stroke" points="100,110 108,138 110,168"/>
+      <polyline class="fig-stroke" points="92,66 88,112"/>
+      <polyline class="fig-stroke" points="108,66 100,50 100,38">
+        <animate attributeName="points" values="108,66 100,50 100,38;108,66 100,50 88,68;108,66 100,50 100,38" keyTimes="0;0.5;1" dur="${dur.tricepext}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="100" cy="38" r="10">
+        <animate attributeName="cx" values="100;88;100" keyTimes="0;0.5;1" dur="${dur.tricepext}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="38;68;38" keyTimes="0;0.5;1" dur="${dur.tricepext}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- KETTLEBELL HAMMER CURL: neutrale grip, elleboog gefixeerd, alleen de onderarm curlt omhoog -->
+    <g id="fig-hammercurl" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="48" r="12"/>
+      <polyline class="fig-stroke" points="100,64 100,110"/>
+      <polyline class="fig-stroke" points="100,110 92,138 90,168"/>
+      <polyline class="fig-stroke" points="100,110 108,138 110,168"/>
+      <polyline class="fig-stroke" points="92,66 88,112"/>
+      <polyline class="fig-stroke" points="108,66 112,92 116,122">
+        <animate attributeName="points" values="108,66 112,92 116,122;108,66 111,93 114,74;108,66 112,92 116,122" keyTimes="0;0.5;1" dur="${dur.hammercurl}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="116" cy="122" r="9">
+        <animate attributeName="cx" values="116;114;116" keyTimes="0;0.5;1" dur="${dur.hammercurl}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="122;74;122" keyTimes="0;0.5;1" dur="${dur.hammercurl}" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- OVERHEAD TRICEPS EXTENSION: bell met twee handen vastgehouden, zakt gecontroleerd achter het hoofd -->
+    <g id="fig-overheadtricep" class="fig-group">
+      <circle class="fig-stroke" cx="100" cy="48" r="12"/>
+      <polyline class="fig-stroke" points="100,64 100,110"/>
+      <polyline class="fig-stroke" points="100,110 92,138 90,168"/>
+      <polyline class="fig-stroke" points="100,110 108,138 110,168"/>
+      <polyline class="fig-stroke" points="92,66 96,50 100,38">
+        <animate attributeName="points" values="92,66 96,50 100,38;92,66 90,52 88,68;92,66 96,50 100,38" keyTimes="0;0.5;1" dur="${dur.overheadtricep}" repeatCount="indefinite"/>
+      </polyline>
+      <polyline class="fig-stroke" points="108,66 104,50 100,38">
+        <animate attributeName="points" values="108,66 104,50 100,38;108,66 110,52 88,68;108,66 104,50 100,38" keyTimes="0;0.5;1" dur="${dur.overheadtricep}" repeatCount="indefinite"/>
+      </polyline>
+      <circle class="fig-kb" cx="100" cy="38" r="10">
+        <animate attributeName="cx" values="100;88;100" keyTimes="0;0.5;1" dur="${dur.overheadtricep}" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="38;68;38" keyTimes="0;0.5;1" dur="${dur.overheadtricep}" repeatCount="indefinite"/>
       </circle>
     </g>
 
